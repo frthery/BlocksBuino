@@ -1,4 +1,4 @@
 BlocksBuino
 ===========
 
-BlocksBuino is a Tetris Clone for GameBuino.
+BlocksBuino is a Tetris Clone for Gamebuino.
