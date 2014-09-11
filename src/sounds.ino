@@ -1,11 +1,11 @@
-typedef enum soundsFxChannel_t {
+enum soundsFxChannel_t {
   SND_FX_CHANNEL_1 = 0,
   SND_FX_CHANNEL_2 = 1,
   SND_FX_CHANNEL_3 = 2,
   SND_FX_CHANNEL_4 = 3
 };
 
-typedef enum soundsFx_t {
+enum soundsFx_t {
   SND_FX_LINE_COMPLETED = 0,
   SND_FX_ROTATE         = 1,
   SND_FX_GAME_OVER      = 2,
@@ -35,7 +35,7 @@ void PlaySoundFxPieceDrop() {
   PlaySoundFx(SND_FX_PIECE_DROP, SND_FX_CHANNEL_1);
 }
 
-//play Gambuino sound effect (http://www.yodasvideoarcade.com/gamebuino.php)
+//Play Gambuino sound effect (http://www.yodasvideoarcade.com/gamebuino.php)
 void PlaySoundFx(int fxno, int channel) {
   gb.sound.command(0,soundfx[fxno][6],0,channel); // set volume
   gb.sound.command(1,soundfx[fxno][0],0,channel); // set waveform

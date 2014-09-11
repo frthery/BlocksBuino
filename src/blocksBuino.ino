@@ -27,6 +27,9 @@ unsigned long game_prevTime = 0;
 //END game variables
 
 //animation variables
+unsigned short game_animation_default_counter = 60;
+short game_animation_counter = game_animation_default_counter;
+short game_animation_color = 0;
 const unsigned int game_animation_delai = 1000;
 unsigned long game_animation_delai_prevTime = millis();
 //END animation variables
@@ -58,13 +61,13 @@ enum type_blocks {
 short player_blocks_type = BLOCKS_LINE;
 short player_blocks_current_type = BLOCKS_LINE;
 short player_blocks_rotation = 1; //1,2,3,4
-short player_blocks1[2]; //rotation point 84x48 y,x
+short player_blocks1[2]; //rotation point y,x
 short player_blocks2[2];
 short player_blocks3[2];
 short player_blocks4[2];
 //END player variables
 
-//field variables
+//field variables 84x48
 const int field_x = 26; // 16
 const int field_y = LCDHEIGHT + 1;
 const int field_w = 32;// 10 BLOCKS MAX // 42
@@ -78,7 +81,7 @@ void setup(){
   gb.pickRandomSeed();
   
   //display the main menu
-  gb.titleScreen(logo);//F("--- BlocksBuino ---"));
+  gb.titleScreen(logo);
   
   gb.battery.show = false;//hide the battery indicator
 }
@@ -140,7 +143,7 @@ void InitGame() {
     game_level = game_menu_level;
   }
   else {
-    game_level = 1; // reset game_level
+    game_level = 1;
   }
   game_menu_level = game_level;
   game_delai = game_levels[game_level - 1];
@@ -160,14 +163,15 @@ void Play() {
       DrawField();
       DrawBlocks();
         
-      //update animation time
+      //update animation prevtime
       game_animation_delai_prevTime = millis();
+      game_animation_counter = game_animation_default_counter;
     }
     else {
       //display animation
       DrawScore();
       DrawField();
-      DrawAnimationBlocks(game_animation_currentTime);
+      DrawAnimationBlocks();
     }
   }
   else {
@@ -179,7 +183,7 @@ void Play() {
     DrawPlayerBlocks();
     DrawBlocks();
 
-    //update animation time
+    //update animation prevtime
     game_animation_delai_prevTime = millis();
   }
   
@@ -217,7 +221,6 @@ void GameMenu() {
   if(gb.buttons.pressed(BTN_A)){
     gb.sound.playOK();
     
-    //initialize = false;
     game_level = game_menu_level;
     initialize = false;
     game_menu = false;
@@ -226,7 +229,6 @@ void GameMenu() {
     gb.sound.playOK();
     
     game_menu_level = game_level;
-    //initialize = false;
     game_menu = false;
   }
   if(gb.buttons.pressed(BTN_C)){
@@ -311,7 +313,7 @@ void MovePlayerBlocks() {
       MoveYBlocks(-1);
     }
 
-    //update time
+    //update prevtime
     game_prevTime = game_currentTime;
   }
 
@@ -526,7 +528,7 @@ void UpdateBlocks() {
     i++;
   }
 
-  // reset
+  //reset
   for (i =0; i < BLOCKS_MAX_Y;i++) {
     lines_completions[i] = false;
   }
@@ -669,12 +671,16 @@ void DrawBlocks() {
   }  
 }
 
-void DrawAnimationBlocks(int game_animation_currentTime) {
+void DrawAnimationBlocks() {
   int i = 0;
   int j = 0;
   int x = 0;
   int y = 0;
 
+  if ((game_animation_counter % 2) == 0) {
+    game_animation_color = !(boolean)game_animation_color;
+  }
+        
   while (i < BLOCKS_MAX_Y) {
     j = 0;
     y = GetYcoordonnee(i);
@@ -691,7 +697,8 @@ void DrawAnimationBlocks(int game_animation_currentTime) {
      else {
        while (j < BLOCKS_MAX_X) {
         x = GetXcoordonnee(j);
-        if ((game_animation_currentTime % 2) == 0) {
+        
+        if (game_animation_color == 0) {
           gb.display.drawRect(x, y, block_draw_w, block_draw_h);
         }
         else {
@@ -701,7 +708,9 @@ void DrawAnimationBlocks(int game_animation_currentTime) {
       }
     }
     i++;
-  }  
+  }
+  
+  game_animation_counter--;  
 }
 
 void DrawNextBlocks() {
@@ -720,50 +729,50 @@ void DrawNextBlocks() {
   gb.display.print("NEXT");
     
   switch(player_blocks_type) {
-    case 1:
+    case BLOCKS_LINE:
       //line
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + (block_draw_h * 2), block_draw_w, block_draw_h);
       break;
-    case 2:
+    case BLOCKS_CUBE:
       //cube
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x + block_draw_w, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x + block_draw_w, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       break;
-    case 3:
+    case BLOCKS_T:
       //T
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x - block_draw_w, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       break;
-    case 4:
+    case BLOCKS_L:
       //L
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x - block_draw_w, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       break;
-    case 5:
+    case BLOCKS_L_REVERT:
       //L(revert)
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x + block_draw_w, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       break;
-    case 6:
-      //L(revert)
+    case BLOCKS_S:
+      //S
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y - block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x + block_draw_w, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x + block_draw_w, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       break;
-    case 7:
-      //L(revert)
+    case BLOCKS_S_REVERT:
+      //S(revert)
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x, (LCDHEIGHT / 2) + y + block_draw_h, block_draw_w, block_draw_h);
       gb.display.drawRect((field_x / 2) + x + block_draw_w, (LCDHEIGHT / 2) + y, block_draw_w, block_draw_h);
@@ -787,7 +796,7 @@ void DrawField() {
 }
 
 void ShowDebug(String message) {
-  //draw debug line
+  //print debug line
   gb.display.cursorX = 1;
   gb.display.cursorY = 1;  
   gb.display.print("[ " + message + " ]");
